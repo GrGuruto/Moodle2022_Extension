@@ -5,4 +5,5 @@ This makes it easier to see the list of classes and assignment deadlines, so tha
 FEATURES:
 
 ･Display deadlines and their remaining time in the My courses menu.
+
 ･Display classes in the menu that you are enrolled in but that do not appear in the my courses menu.
