@@ -73,8 +73,17 @@ function add_class_due(url){
     .then(res => res.text())
     .then(function(data){
         const doc_event = parser.parseFromString(data, "text/html");
+        if (confirm_done(doc_event) == true){
+            return
+        }
         const subject = doc_event.title.split(':')[0];
-        let due = doc_event.getElementsByClassName('col-11')[0].innerText;
+        const cards = doc_event.getElementsByClassName('event mt-3');
+        for (let i=0; i<cards.length; i++){
+            if (cards[i].getAttribute("data-event-eventtype") == "due"){
+                var due =  cards[i].getElementsByClassName('col-11')[0].innerText;
+            }
+        }
+        //let due = doc_event.getElementsByClassName('col-11')[0].innerText;
         let due_split = due.split(' ');
         if (due_split[0] != 'Today,' && due_split[0] != 'Tomorrow,'){
             due_split[0] = due_split[0].slice(0,3) + '.';
@@ -87,13 +96,32 @@ function add_class_due(url){
         const remaining = get_time_remaining(url);
         for (let i=0; i<classes.length; i++){
             if (classes[i].innerText.indexOf(subject) !== -1){
-                classes[i].innerText += `\nDue: ${due}\n${remaining} remaining`
+                if (classes[i].innerText.indexOf("Due:") == -1){
+                    classes[i].innerText += `\nDue: ${due}\n${remaining} remaining`;
+                }else if (classes[i].innerText.indexOf("and more") == -1){
+                    classes[i].innerText += '\nand more...'
+                }
                 if (due.indexOf("Tomorrow")!==-1 || due.indexOf("Today")!==-1){
                     classes[i].style.color = "red";
                 }
             }
         }
     })
+}
+
+function confirm_done(doc){
+    const cards = doc.getElementsByClassName('card rounded');
+    for (let i=0; i<cards.length; i++){
+        const card_title = cards[i].children[0].children[2].innerText;
+        if((card_title.indexOf('提出期限') !== -1) || (card_title.indexOf('is due') !== -1)){
+            const card_footer = cards[i].children[2];
+            if (card_footer.innerText.match('Add submission')){
+                return false;
+            }else if (card_footer.innerText.match('Go to')){
+                return true
+            }
+        }
+    }
 }
 
 function get_time_remaining(url){
